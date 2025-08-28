@@ -8,7 +8,7 @@
 
 ```toml
 [dependencies]
-walrus_rs = "0.1.0" # 替换为最新版本
+walrus_rs = "0.1.1" # 替换为最新版本
 reqwest = { version = "0.12", features = ["json", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
@@ -24,8 +24,6 @@ async-trait = "0.1"
 
 ```rust
 use walrus_rs::{WalrusClient, WalrusError};
-use walrus_rs::blob::BlobClient;
-use walrus_rs::quilt::QuiltClient;
 
 #[tokio::main]
 async fn main() -> Result<(), WalrusError> {
@@ -35,13 +33,11 @@ async fn main() -> Result<(), WalrusError> {
         .unwrap_or_else(|_| "https://publisher.walrus-01.tududes.com".to_string());
 
     let client = WalrusClient::new(&aggregator_url, &publisher_url)?;
-    let blob_client = BlobClient::new(&client);
-    let quilt_client = QuiltClient::new(&client);
 
     // Example: Store a blob
     println!("Storing a blob...");
     let data = "some string from Rust SDK".as_bytes().to_vec();
-    let store_result = blob_client.store_blob(data, Some(1), None, None, None).await?;
+    let store_result = client.store_blob(data, Some(1), None, None, None).await?;
     println!("Blob store result: {:?}", store_result);
 
     if let Some(newly_created) = store_result.newly_created {
@@ -50,7 +46,7 @@ async fn main() -> Result<(), WalrusError> {
 
         // Example: Read a blob by ID
         println!("Reading blob by ID: {}", blob_id);
-        let read_data = blob_client.read_blob_by_id(&blob_id).await?;
+        let read_data = client.read_blob_by_id(&blob_id).await?;
         println!("Read blob data: {}", String::from_utf8_lossy(&read_data));
     }
 
@@ -62,7 +58,7 @@ async fn main() -> Result<(), WalrusError> {
         ("file1.txt", file1_data),
         ("file2.txt", file2_data),
     ];
-    let quilt_store_result = quilt_client.store_quilt(files, None, Some(1), None, None, None).await?;
+    let quilt_store_result = client.store_quilt(files, None, Some(1), None, None, None).await?;
     println!("Quilt store result: {:?}", quilt_store_result);
 
     if let Some(newly_created) = quilt_store_result.blob_store_result.newly_created {
@@ -75,7 +71,7 @@ async fn main() -> Result<(), WalrusError> {
 
             // Example: Read a quilt blob by patch ID
             println!("Reading quilt blob by patch ID: {}", quilt_patch_id);
-            let read_quilt_data = quilt_client.read_quilt_blob_by_patch_id(quilt_patch_id).await?;
+            let read_quilt_data = client.read_quilt_blob_by_patch_id(quilt_patch_id).await?;
             println!("Read quilt blob data: {}", String::from_utf8_lossy(&read_quilt_data));
         }
     }
