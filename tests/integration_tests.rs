@@ -5,18 +5,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_walrus_client_new() {
-        let aggregator_url = "http://localhost:8080";
-        let publisher_url = "http://localhost:8081";
+        let aggregator_url = "https://aggregator.testnet.walrus.atalma.io";
+        let publisher_url = "https://publisher.walrus-01.tududes.com";
         let client = WalrusClient::new(aggregator_url, publisher_url).unwrap();
 
-        assert_eq!(client.aggregator_url().as_str(), "http://localhost:8080/");
-        assert_eq!(client.publisher_url().as_str(), "http://localhost:8081/");
+        assert_eq!(client.aggregator_url().as_str(), "https://aggregator.testnet.walrus.atalma.io");
+        assert_eq!(client.publisher_url().as_str(), "https://publisher.walrus-01.tududes.com");
     }
 
     #[tokio::test]
     async fn test_walrus_client_invalid_url() {
         let aggregator_url = "invalid-url";
-        let publisher_url = "http://localhost:8081";
+        let publisher_url = "invalid-url";
         let client_result = WalrusClient::new(aggregator_url, publisher_url);
         assert!(client_result.is_err());
         if let Err(WalrusError::InvalidUrl(msg)) = client_result {
