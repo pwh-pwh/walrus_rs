@@ -1,5 +1,5 @@
-use thiserror::Error;
 use reqwest::StatusCode;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum WalrusError {
@@ -15,4 +15,6 @@ pub enum WalrusError {
     InvalidParameter(String),
     #[error("Unknown error: {0}")]
     Unknown(String),
+    #[error("Other error: {0}")]
+    Other(String),
 }

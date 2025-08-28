@@ -1,4 +1,7 @@
-use reqwest::{Client, multipart::{Form, Part}, Url};
+use reqwest::{
+    Client, Url,
+    multipart::{Form, Part},
+};
 use serde_json::to_string;
 
 use crate::error::WalrusError;
@@ -13,9 +16,9 @@ pub struct WalrusClient {
 impl WalrusClient {
     pub fn new(aggregator_url: &str, publisher_url: &str) -> Result<Self, WalrusError> {
         let aggregator_url = Url::parse(aggregator_url)
-            .map_err(|e| WalrusError::InvalidUrl(format!("Invalid aggregator URL: {}", e)))?;
+            .map_err(|e| WalrusError::InvalidUrl(format!("Invalid aggregator URL: {e}")))?;
         let publisher_url = Url::parse(publisher_url)
-            .map_err(|e| WalrusError::InvalidUrl(format!("Invalid publisher URL: {}", e)))?;
+            .map_err(|e| WalrusError::InvalidUrl(format!("Invalid publisher URL: {e}")))?;
 
         Ok(Self {
             aggregator_url,
@@ -44,8 +47,10 @@ impl WalrusClient {
         permanent: Option<bool>,
         send_object_to: Option<&str>,
     ) -> Result<BlobStoreResult, WalrusError> {
-        let mut url = self.publisher_url().join("v1/blobs")
-            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {}", e)))?;
+        let mut url = self
+            .publisher_url()
+            .join("v1/blobs")
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
 
         {
             let mut query_pairs = url.query_pairs_mut();
@@ -63,44 +68,59 @@ impl WalrusClient {
             }
         }
 
-        let response = self.http_client().put(url)
+        let response = self
+            .http_client()
+            .put(url)
             .body(data)
             .send()
             .await?
             .error_for_status()?;
 
-        let result: BlobStoreResult = response.json().await
-            .map_err(|e| WalrusError::ParseError(format!("Failed to parse BlobStoreResult: {}", e)))?;
+        let result: BlobStoreResult = response.json().await.map_err(|e| {
+            WalrusError::ParseError(format!("Failed to parse BlobStoreResult: {e}"))
+        })?;
 
         Ok(result)
     }
 
     pub async fn read_blob_by_id(&self, blob_id: &str) -> Result<Vec<u8>, WalrusError> {
-        let url = self.aggregator_url().join(&format!("v1/blobs/{}", blob_id))
-            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {}", e)))?;
+        let url = self
+            .aggregator_url()
+            .join(&format!("v1/blobs/{blob_id}"))
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
 
-        let response = self.http_client().get(url)
+        let response = self
+            .http_client()
+            .get(url)
             .send()
             .await?
             .error_for_status()?;
 
-        let bytes = response.bytes().await
-            .map_err(|e| WalrusError::ParseError(format!("Failed to read blob bytes: {}", e)))?;
+        let bytes = response
+            .bytes()
+            .await
+            .map_err(|e| WalrusError::ParseError(format!("Failed to read blob bytes: {e}")))?;
 
         Ok(bytes.to_vec())
     }
 
     pub async fn read_blob_by_object_id(&self, object_id: &str) -> Result<Vec<u8>, WalrusError> {
-        let url = self.aggregator_url().join(&format!("v1/blobs/by-object-id/{}", object_id))
-            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {}", e)))?;
+        let url = self
+            .aggregator_url()
+            .join(&format!("v1/blobs/by-object-id/{object_id}"))
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
 
-        let response = self.http_client().get(url)
+        let response = self
+            .http_client()
+            .get(url)
             .send()
             .await?
             .error_for_status()?;
 
-        let bytes = response.bytes().await
-            .map_err(|e| WalrusError::ParseError(format!("Failed to read blob bytes: {}", e)))?;
+        let bytes = response
+            .bytes()
+            .await
+            .map_err(|e| WalrusError::ParseError(format!("Failed to read blob bytes: {e}")))?;
 
         Ok(bytes.to_vec())
     }
@@ -114,8 +134,10 @@ impl WalrusClient {
         permanent: Option<bool>,
         send_object_to: Option<&str>,
     ) -> Result<QuiltStoreResponse, WalrusError> {
-        let mut url = self.publisher_url().join("v1/quilts")
-            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {}", e)))?;
+        let mut url = self
+            .publisher_url()
+            .join("v1/quilts")
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
 
         {
             let mut query_pairs = url.query_pairs_mut();
@@ -139,34 +161,46 @@ impl WalrusClient {
         }
 
         if let Some(meta) = metadata {
-            let metadata_json = to_string(&meta)
-                .map_err(|e| WalrusError::ParseError(format!("Failed to serialize metadata: {}", e)))?;
+            let metadata_json = to_string(&meta).map_err(|e| {
+                WalrusError::ParseError(format!("Failed to serialize metadata: {e}"))
+            })?;
             form = form.part("_metadata", Part::text(metadata_json));
         }
 
-        let response = self.http_client().put(url)
+        let response = self
+            .http_client()
+            .put(url)
             .multipart(form)
             .send()
             .await?
             .error_for_status()?;
 
-        let result: QuiltStoreResponse = response.json().await
-            .map_err(|e| WalrusError::ParseError(format!("Failed to parse QuiltStoreResponse: {}", e)))?;
+        let result: QuiltStoreResponse = response.json().await.map_err(|e| {
+            WalrusError::ParseError(format!("Failed to parse QuiltStoreResponse: {e}"))
+        })?;
 
         Ok(result)
     }
 
-    pub async fn read_quilt_blob_by_patch_id(&self, quilt_patch_id: &str) -> Result<Vec<u8>, WalrusError> {
-        let url = self.aggregator_url().join(&format!("v1/blobs/by-quilt-patch-id/{}", quilt_patch_id))
-            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {}", e)))?;
+    pub async fn read_quilt_blob_by_patch_id(
+        &self,
+        quilt_patch_id: &str,
+    ) -> Result<Vec<u8>, WalrusError> {
+        let url = self
+            .aggregator_url()
+            .join(&format!("v1/blobs/by-quilt-patch-id/{quilt_patch_id}"))
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
 
-        let response = self.http_client().get(url)
+        let response = self
+            .http_client()
+            .get(url)
             .send()
             .await?
             .error_for_status()?;
 
-        let bytes = response.bytes().await
-            .map_err(|e| WalrusError::ParseError(format!("Failed to read quilt blob bytes: {}", e)))?;
+        let bytes = response.bytes().await.map_err(|e| {
+            WalrusError::ParseError(format!("Failed to read quilt blob bytes: {e}"))
+        })?;
 
         Ok(bytes.to_vec())
     }
@@ -176,16 +210,21 @@ impl WalrusClient {
         quilt_id: &str,
         identifier: &str,
     ) -> Result<Vec<u8>, WalrusError> {
-        let url = self.aggregator_url().join(&format!("v1/blobs/by-quilt-id/{}/{}", quilt_id, identifier))
-            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {}", e)))?;
+        let url = self
+            .aggregator_url()
+            .join(&format!("v1/blobs/by-quilt-id/{quilt_id}/{identifier}"))
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
 
-        let response = self.http_client().get(url)
+        let response = self
+            .http_client()
+            .get(url)
             .send()
             .await?
             .error_for_status()?;
 
-        let bytes = response.bytes().await
-            .map_err(|e| WalrusError::ParseError(format!("Failed to read quilt blob bytes: {}", e)))?;
+        let bytes = response.bytes().await.map_err(|e| {
+            WalrusError::ParseError(format!("Failed to read quilt blob bytes: {e}"))
+        })?;
 
         Ok(bytes.to_vec())
     }

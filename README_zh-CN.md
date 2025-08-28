@@ -8,7 +8,7 @@
 
 ```toml
 [dependencies]
-walrus_rs = "0.1.1" # 替换为最新版本
+walrus_rs = "0.1.2" # 替换为最新版本
 reqwest = { version = "0.12", features = ["json", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
@@ -18,9 +18,9 @@ thiserror = "1"
 async-trait = "0.1"
 ```
 
-## 示例
+## 异步示例
 
-以下是一个简单的示例，演示如何使用 `walrus_rs` 存储和读取 blob 和 quilt 数据：
+以下是一个简单的示例，演示如何使用异步的 `WalrusClient` 存储和读取 blob 和 quilt 数据：
 
 ```rust
 use walrus_rs::{WalrusClient, WalrusError};
@@ -80,12 +80,52 @@ async fn main() -> Result<(), WalrusError> {
 }
 ```
 
+## 阻塞 (同步) 示例
+
+对于无法使用异步的环境，`walrus_rs` 也提供了一个阻塞客户端。
+
+```rust
+use walrus_rs::{BlockingWalrusClient, WalrusError};
+
+fn main() -> Result<(), WalrusError> {
+    let aggregator_url = std::env::var("AGGREGATOR")
+        .unwrap_or_else(|_| "https://aggregator.testnet.walrus.atalma.io".to_string());
+    let publisher_url = std::env::var("PUBLISHER")
+        .unwrap_or_else(|_| "https://publisher.walrus-01.tududes.com".to_string());
+
+    let client = BlockingWalrusClient::new(&aggregator_url, &publisher_url)?;
+
+    // 示例：存储 blob
+    println!("Storing a blob...");
+    let data = "some string from Rust SDK (blocking)".as_bytes().to_vec();
+    let store_result = client.store_blob(data, Some(1), None, None, None)?;
+    println!("Blob store result: {:?}", store_result);
+
+    if let Some(newly_created) = store_result.newly_created {
+        let blob_id = newly_created.blob_object.blob_id;
+        println!("Newly created blob ID: {}", blob_id);
+
+        // 示例：通过 ID 读取 blob
+        println!("Reading blob by ID: {}", blob_id);
+        let read_data = client.read_blob_by_id(&blob_id)?;
+        println!("Read blob data: {}", String::from_utf8_lossy(&read_data));
+    }
+    Ok(())
+}
+```
+
 ## 运行示例
 
-要运行上述示例，请确保已设置 `AGGREGATOR` 和 `PUBLISHER` 环境变量，或者在代码中提供默认值。
+要运行示例，请确保已设置 `AGGREGATOR` 和 `PUBLISHER` 环境变量，或者在代码中提供默认值。
 
+运行异步示例：
 ```bash
 cargo run --example simple_usage
+```
+
+运行阻塞示例：
+```bash
+cargo run --example blocking_usage
 ```
 
 ## 许可证

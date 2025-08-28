@@ -8,7 +8,7 @@ Add the following dependency to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-walrus_rs = "0.1.1" # Replace with the latest version
+walrus_rs = "0.1.2" # Replace with the latest version
 reqwest = { version = "0.12", features = ["json", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
@@ -18,9 +18,9 @@ thiserror = "1"
 async-trait = "0.1"
 ```
 
-## Example
+## Async Example
 
-Here's a simple example demonstrating how to use `walrus_rs` to store and read blob and quilt data:
+Here's a simple example demonstrating how to use the async `WalrusClient` to store and read blob and quilt data:
 
 ```rust
 use walrus_rs::{WalrusClient, WalrusError};
@@ -80,12 +80,52 @@ async fn main() -> Result<(), WalrusError> {
 }
 ```
 
-## Running the Example
+## Blocking (Sync) Example
 
-To run the example above, ensure you have the `AGGREGATOR` and `PUBLISHER` environment variables set, or provide default values in the code.
+For environments where you can't use async, `walrus_rs` also provides a blocking client.
 
+```rust
+use walrus_rs::{BlockingWalrusClient, WalrusError};
+
+fn main() -> Result<(), WalrusError> {
+    let aggregator_url = std::env::var("AGGREGATOR")
+        .unwrap_or_else(|_| "https://aggregator.testnet.walrus.atalma.io".to_string());
+    let publisher_url = std::env::var("PUBLISHER")
+        .unwrap_or_else(|_| "https://publisher.walrus-01.tududes.com".to_string());
+
+    let client = BlockingWalrusClient::new(&aggregator_url, &publisher_url)?;
+
+    // Example: Store a blob
+    println!("Storing a blob...");
+    let data = "some string from Rust SDK (blocking)".as_bytes().to_vec();
+    let store_result = client.store_blob(data, Some(1), None, None, None)?;
+    println!("Blob store result: {:?}", store_result);
+
+    if let Some(newly_created) = store_result.newly_created {
+        let blob_id = newly_created.blob_object.blob_id;
+        println!("Newly created blob ID: {}", blob_id);
+
+        // Example: Read a blob by ID
+        println!("Reading blob by ID: {}", blob_id);
+        let read_data = client.read_blob_by_id(&blob_id)?;
+        println!("Read blob data: {}", String::from_utf8_lossy(&read_data));
+    }
+    Ok(())
+}
+```
+
+## Running the Examples
+
+To run the examples, ensure you have the `AGGREGATOR` and `PUBLISHER` environment variables set, or provide default values in the code.
+
+To run the async example:
 ```bash
 cargo run --example simple_usage
+```
+
+To run the blocking example:
+```bash
+cargo run --example blocking_usage
 ```
 
 ## License
