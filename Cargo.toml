@@ -1,0 +1,21 @@
+[package]
+name = "walrus_rs"
+version = "0.1.0"
+edition = "2024"
+description = "A Rust client for Walrus API"
+license = "MIT"
+repository = "https://github.com/pwh-pwh/walrus_rs" # 请替换为你的实际仓库地址
+
+[lib]
+name = "walrus_rs"
+path = "src/lib.rs"
+
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+thiserror = "1"
+async-trait = "0.1"
