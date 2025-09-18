@@ -8,7 +8,7 @@ Add the following dependency to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-walrus_rs = "0.1.2" # Replace with the latest version
+walrus_rs = "0.1.3" # Replace with the latest version
 reqwest = { version = "0.12", features = ["json", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }

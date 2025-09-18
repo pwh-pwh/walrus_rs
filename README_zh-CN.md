@@ -8,7 +8,7 @@
 
 ```toml
 [dependencies]
-walrus_rs = "0.1.2" # 替换为最新版本
+walrus_rs = "0.1.3" # 替换为最新版本
 reqwest = { version = "0.12", features = ["json", "multipart"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
