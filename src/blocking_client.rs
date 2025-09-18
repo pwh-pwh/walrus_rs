@@ -1,6 +1,6 @@
 use crate::client::WalrusClient;
 use crate::error::WalrusError;
-use crate::models::{BlobStoreResult, QuiltMetadata, QuiltStoreResponse};
+use crate::models::{BlobMetadata, BlobStoreResult, QuiltMetadata, QuiltStoreResponse};
 use tokio::runtime::Runtime;
 
 pub struct BlockingWalrusClient {
@@ -83,5 +83,10 @@ impl BlockingWalrusClient {
             self.async_client
                 .read_quilt_blob_by_quilt_id_and_identifier(quilt_id, identifier),
         )
+    }
+
+    pub fn get_blob_metadata(&self, blob_id: &str) -> Result<BlobMetadata, WalrusError> {
+        self.runtime
+            .block_on(self.async_client.get_blob_metadata(blob_id))
     }
 }

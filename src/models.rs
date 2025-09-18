@@ -85,3 +85,10 @@ pub struct QuiltMetadata {
     pub identifier: String,
     pub tags: HashMap<String, String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BlobMetadata {
+    pub content_length: u64,
+    pub content_type: String,
+    pub etag: String,
+}

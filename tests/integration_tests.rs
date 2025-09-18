@@ -55,4 +55,13 @@ mod tests {
             panic!("Expected InvalidUrl error");
         }
     }
+
+    #[test]
+    fn test_get_blob_metadata() {
+        let aggregator_url = "https://aggregator.testnet.walrus.atalma.io";
+        let publisher_url = "https://publisher.walrus-01.tududes.com";
+        let client = BlockingWalrusClient::new(aggregator_url, publisher_url).unwrap();
+        let metadata = client.get_blob_metadata("jUtX26C8c9csndZOUSrYmyLKlL_4CPfH1M4fnTI_kjY");
+        assert!(metadata.is_ok());
+    }
 }

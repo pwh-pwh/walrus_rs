@@ -5,7 +5,7 @@ use reqwest::{
 use serde_json::to_string;
 
 use crate::error::WalrusError;
-use crate::models::{BlobStoreResult, QuiltMetadata, QuiltStoreResponse};
+use crate::models::{BlobMetadata, BlobStoreResult, QuiltMetadata, QuiltStoreResponse};
 
 pub struct WalrusClient {
     aggregator_url: Url,
@@ -227,5 +227,44 @@ impl WalrusClient {
         })?;
 
         Ok(bytes.to_vec())
+    }
+
+    pub async fn get_blob_metadata(&self, blob_id: &str) -> Result<BlobMetadata, WalrusError> {
+        let url = self
+            .aggregator_url()
+            .join(&format!("v1/blobs/{blob_id}"))
+            .map_err(|e| WalrusError::InvalidUrl(format!("Failed to build URL: {e}")))?;
+
+        let response = self
+            .http_client()
+            .head(url)
+            .send()
+            .await?
+            .error_for_status()?;
+
+        // Helper function to extract header value
+        fn get_header_value(
+            headers: &reqwest::header::HeaderMap,
+            key: &str,
+        ) -> Result<String, WalrusError> {
+            headers
+                .get(key)
+                .ok_or_else(|| WalrusError::ParseError(format!("Missing header: {key}")))?
+                .to_str()
+                .map_err(|e| WalrusError::ParseError(format!("Failed to parse header {key}: {e}")))
+                .map(|s| s.to_owned())
+        }
+
+        let content_length = get_header_value(response.headers(), "content-length")?
+            .parse::<u64>()
+            .map_err(|e| WalrusError::ParseError(format!("Failed to parse content-length: {e}")))?;
+        let content_type = get_header_value(response.headers(), "content-type")?;
+        let etag = get_header_value(response.headers(), "etag")?;
+
+        Ok(BlobMetadata {
+            content_length,
+            content_type,
+            etag,
+        })
     }
 }
