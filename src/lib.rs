@@ -13,35 +13,6 @@
 //! - [`models`]: Defines the data structures used by the Walrus API.
 //! - [`error`]: Defines the library's error types [`WalrusError`].
 //!
-//! Examples:
-//!
-//! Asynchronous client usage example:
-//! ```no_run
-//! use walrus_rs::WalrusClient;
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), walrus_rs::WalrusError> {
-//!     let client = WalrusClient::new("your_api_key".to_string());
-//!     // Perform API calls
-//!     // let response = client.some_api_call().await?;
-//!     // println!("{:?}", response);
-//!     Ok(())
-//! }
-//! ```
-//!
-//! Blocking client usage example:
-//! ```no_run
-//! use walrus_rs::BlockingWalrusClient;
-//!
-//! fn main() -> Result<(), walrus_rs::WalrusError> {
-//!     let client = BlockingWalrusClient::new("your_api_key".to_string());
-//!     // Perform API calls
-//!     // let response = client.some_api_call()?;
-//!     // println!("{:?}", response);
-//!     Ok(())
-//! }
-//! ```
-//!
 //! [`client`]: crate::client
 //! [`blocking_client`]: crate::blocking_client
 //! [`models`]: crate::models
